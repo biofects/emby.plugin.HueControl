@@ -16,7 +16,6 @@ namespace Emby.HueControl
         public Server Server { get; set; }
         public Player Player { get; set; }
         public Metadata Metadata { get; set; }
-
     }
 
 

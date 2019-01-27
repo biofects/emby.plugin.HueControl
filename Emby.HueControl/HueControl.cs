@@ -17,9 +17,9 @@ using MediaBrowser.Controller.Notifications;
 using System.Threading;
 using MediaBrowser.Controller.Entities;
 
+
 namespace Emby.HueControl
 {
-
     public class HueControl : IServerEntryPoint
     {
         private readonly ISessionManager _sessionManager;
@@ -29,10 +29,31 @@ namespace Emby.HueControl
         private readonly ILibraryManager _libraryManager;
         private readonly IHttpClient _httpClient;
 
+        public enum PlayerState {Playing, Stopped, Paused, New}
+
+        private List<DeviceState> deviceState = new List<DeviceState>();
+
+        public class DeviceState
+        {
+            public string deviceId { get; set; }
+            public PlayerState playerState;           
+        }
+        public DeviceState getDeviceState( string deviceId )
+        {
+            var dState = deviceState.Where(x => x.deviceId == deviceId).FirstOrDefault();
+            if (dState == null)
+            {
+                dState = new DeviceState() { deviceId = deviceId, playerState = PlayerState.New };
+                deviceState.Add(dState);
+            }
+            return dState;
+        }
+
         private List<PauseControl> pauseControl = new List<PauseControl>();
         public class PauseControl
         {
             public string deviceId { get; set; }
+
             public bool wasPaused { get; set; }
         }
 
@@ -101,6 +122,7 @@ namespace Emby.HueControl
             {
                 _logger.Debug("Playback Paused event");
                 _logger.Debug(_jsonSerializer.SerializeToString(e));
+                getDeviceState(e.DeviceId).playerState = PlayerState.Paused;
                 pauseControl.wasPaused = true;
 
                 var DeviceOptions = Plugin.Instance.Configuration.Options.Where(i => i.embyDeviceID == e.DeviceId && i.Enabled);
@@ -109,14 +131,14 @@ namespace Emby.HueControl
                 {
                     var a = DeviceOptions.First();
                     //send dim-up command
-                    sendDimUp(DeviceOptions.First());
+                    sDim(DeviceOptions.First());
                 }
             }
             else if (e.IsPaused == false & pauseControl.wasPaused)
             {
                 _logger.Debug("Playback Resume event");
                 _logger.Debug(_jsonSerializer.SerializeToString(e));
-
+                getDeviceState(e.DeviceId).playerState = PlayerState.Playing;
                 getPauseControl(e.DeviceId).wasPaused = false;
 
                 var DeviceOptions = Plugin.Instance.Configuration.Options.Where(i => i.embyDeviceID == e.DeviceId && i.Enabled);
@@ -125,7 +147,7 @@ namespace Emby.HueControl
                 {
                     var a = DeviceOptions.First();
                     //send dim-down command
-                    sendDim(DeviceOptions.First());
+                    sDim(DeviceOptions.First());
                 }
             }
 
@@ -140,14 +162,17 @@ namespace Emby.HueControl
             _logger.Debug(_jsonSerializer.SerializeToString(e));
 
             getPauseControl(e.DeviceId).wasPaused = false;
-
+            
+            getDeviceState(e.DeviceId).playerState = PlayerState.Playing;
+            
             var DeviceOptions = Plugin.Instance.Configuration.Options.Where(i => i.embyDeviceID == e.DeviceId && i.Enabled);
 
             if (DeviceOptions.Count() > 0)
             {
+                
                 var a = DeviceOptions.First();
                 //send dim-down command
-                sendDim(DeviceOptions.First());
+                sDim(DeviceOptions.First());
             }
             return;
                         
@@ -160,66 +185,85 @@ namespace Emby.HueControl
             _logger.Debug("Playback Stop event");
             getPauseControl(e.DeviceId).wasPaused = false;
 
+            getDeviceState(e.DeviceId).playerState = PlayerState.Stopped;
+
             var DeviceOptions = Plugin.Instance.Configuration.Options.Where(i => i.embyDeviceID == e.DeviceId);
 
             if (DeviceOptions.Count() > 0)
             {
                 var a = DeviceOptions.First();
                 //send dim-up command
-                sendDimUp(DeviceOptions.First());
+                sDim(DeviceOptions.First());
             }
             return;
         }
 
-        public async void sendDim(PluginConfiguration.HueControl o)
+        public string hueDataString(DeviceState ds, PluginConfiguration.LightGroup lg){
+            string data; 
+            var lgOnPlayDim = Math.Floor((decimal)(lg.OnPlay_Dim * 2.54));
+            var lgOnStopDim = Math.Floor((decimal)(lg.OnStop_Dim * 2.54));
+            var lgOnPauseDim = Math.Floor((decimal)(lg.OnPause_Dim * 2.54));
+            switch (ds.playerState)
+                {
+                    case PlayerState.Playing:
+                        if (lg.OnPlay_Dim == 0){
+                            data = "{\"on\":false}";
+                        } else {
+                            data = "{\"on\":true,\"bri\":" + lgOnPlayDim.ToString() + ", \"transitiontime\":" + Math.Floor((decimal)(lg.TransTime / 100)) + "}";
+                        }
+                        break;
+                    case PlayerState.Stopped:
+                        if (lg.OnStop_Dim == 0) {
+                            data = "{\"on\":false}";
+                        } else {
+                            data = "{\"on\":true,\"bri\":" + lgOnStopDim.ToString() + ", \"transitiontime\":" + Math.Floor((decimal)(lg.TransTime / 100)) + "}";
+                        }
+                        break;
+                    case PlayerState.Paused:
+                        if (lg.OnPause_Dim == 0) {
+                            data = "{\"on\":false}";
+                        } else {
+                            data = "{\"on\":true,\"bri\":" + lgOnPauseDim.ToString() + ", \"transitiontime\":" + Math.Floor((decimal)(lg.TransTime / 100)) + "}";
+                        }
+                        break;
+                    default:
+                        data = "New";
+                        break;
+                }
+            return data;
+        }
+        public string hueUrlString(string lightGroupNumber){
+            var bridgOptions = Plugin.Instance.Configuration.bridge;
+            return "http://" + bridgOptions.HueIP + "/api/" + bridgOptions.API + "/groups/" + lightGroupNumber + "/action";
+        }
+        public async void sDim(PluginConfiguration.HueControl o)
         {
             //using transitiontime sets the brightness to 1
             //opening a ticket with Phillips Hue for workaround
 
             var bridgOptions = Plugin.Instance.Configuration.bridge;
-            string data = "{\"on\": false }";  //, \"transitiontime\": " + o.OnPlay_TransitionTime.ToString() + "}";
-            _logger.Debug(data);
-            string url = "http://" + bridgOptions.HueIP + "/api/" + bridgOptions.API + "/groups/" + o.LightGroupNumber + "/action" ;
-            _logger.Debug(url);
+            DeviceState ds = getDeviceState(o.embyDeviceID);
+            string data;
+            string url;
 
-            try { 
-            await _httpClient.SendAsync(new HttpRequestOptions
-            {
-                Url = url,
-                //Fix for Emby Server 3.6
-                RequestContent = data.AsMemory()
-                //RequestContent = data
-            }, "PUT");
-            }
-            catch (Exception e)
-            {
-                _logger.Debug(e.ToString());
-            }
-
-            return;
-        }
-
-        public async void sendDimUp(PluginConfiguration.HueControl o)
-        {
-            var bridgOptions = Plugin.Instance.Configuration.bridge;
-            string data = "{\"on\": true, \"transitiontime\": " + o.OnStop_TransitionTime.ToString() + "}";
-            _logger.Debug(data);
-            string url = "http://" + bridgOptions.HueIP + "/api/" + bridgOptions.API + "/groups/" + o.LightGroupNumber + "/action";
-            _logger.Debug(url);
-
-
-            try
-            {
-                await _httpClient.SendAsync(new HttpRequestOptions
+            foreach (var lGroup in o.LightGroups){
+                if(!lGroup.Enabled)
+                    continue;
+                data = hueDataString(ds, lGroup);
+                url = hueUrlString(lGroup.Number);
+                try { 
+                    await _httpClient.SendAsync(new HttpRequestOptions
+                    {
+                        Url = url,
+                        //Fix for Emby Server 3.6
+                        RequestContent = data.AsMemory()
+                        //RequestContent = data
+                    }, "PUT");
+                }
+                catch (Exception e)
                 {
-                    Url = url,
-                    //Fix for Emby Server 3.6
-                    RequestContent = data.AsMemory()
-                    //RequestContent = data
-                }, "PUT");
-            }catch (Exception e)
-            {
-                _logger.Debug(e.ToString());
+                    _logger.Debug(e.ToString());
+                }
             }
             return;
         }

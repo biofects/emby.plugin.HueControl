@@ -19,7 +19,7 @@ namespace Emby.HueControl.Configuration
             bridge = new Bridge { };
             Hooks = new Hook[] { };
             Options = new HueControl[] { };
-        }
+         }
 
         public class Bridge
         {
@@ -31,20 +31,28 @@ namespace Emby.HueControl.Configuration
 
         public Bridge bridge { get; set; }
 
+        public LightGroup[] LightGroupsBase { get; set;  } 
+
         public HueControl[] Options { get; set; }
+
+
+        public class LightGroup {
+                public string Number { get; set; }
+                public string Name { get; set; }
+                public int OnPlay_Dim { get; set; }
+                public int OnPause_Dim { get; set; }
+                public int OnStop_Dim { get; set; }
+                public int TransTime { get; set; }
+                public bool Enabled { get; set; }
+
+            }
         
         public class HueControl
         {
             public bool Enabled { get; set; }
-
             public string embyDeviceID { get; set; }
-
             //public string sceneSaveID { get; set; }
-            public string LightGroupNumber { get; set; }
-            
-            public int OnPlay_TransitionTime { get; set; }
-            public int OnStop_TransitionTime { get; set; }
-
+            public LightGroup[] LightGroups { get; set; }
             public bool withMovies { get; set; }
             public bool withEpisodes { get; set; }
 
@@ -62,7 +70,6 @@ namespace Emby.HueControl.Configuration
             public bool onStop { get; set; }
             public bool onResume { get; set; }
             public bool onItemAdded { get; set; }
-
             public bool withMovies { get; set; }
             public bool withEpisodes { get; set; }
             public bool withSongs { get; set; }

@@ -29,10 +29,6 @@
                                     <div class="listItemBodyText" id="BridgeStatus"></div>
                                 </div>
                             </div>
-
-
-
-                           <!-- <h2 id="BridgeStatus" style="color:red"></h2> -->
                         </div>
                     <br />
                     <h1>Emby Device Configuration</h1>
@@ -43,11 +39,9 @@
                         <label class="checkboxContainer">
                             <input is="emby-checkbox" type="checkbox" id="chkEnabled" /><span>Enable for this device</span>
                         </label>
-
-                            <div class="inputContainer">
-                                <select is="emby-select" id="selectLightGroup" name="selectLightGroup" label="Hue Light Group to Control"></select>
+                        <h3>Which light groups do you want to add to control?</h3>
+                            <div class="checkboxContainer" id="selectLightGroup">   
                             </div>
-                            <!--<input is="emby-input" type="number" step="1" id="txtPlayTime" name="txtPlayTime" required="required" placeholder="0" label="Dim Down transition time (ms)" />-->
                             <input is="emby-input" type="number" step="1" id="txtStopTime" name="txtStopTime" required="required" label="Dim Up transition time (100ms)" />
                         <div>
                             <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
@@ -80,7 +74,6 @@
                 $('#BridgeStatusIcon').html("");
 
                 var onError = function () {
-                    //alert("There was an error sending the test notification. Please check your notification settings and try again.");
                     $('#BridgeStatus').html("Unkown error. Check Hue URL");
                     $('#BridgeStatusIcon').html("error");
 
@@ -147,6 +140,8 @@
 
             });
 
+
+
         function GetAvailableLightGroups(page) {
             Dashboard.showLoadingMsg();
 
@@ -156,9 +151,25 @@
 
             var onError = function () {
                 console.log("Unknown Error Getting Light Group");
+                console.log("nick");
                 
                 $('#BridgeStatusIcon').html("error");
                 $('#BridgeStatus').html('Unable to get light groups. Check URL');
+                // TODO: Remove the following section until END - for testing purposes only
+                //$('#BridgeStatusIcon').html("check");
+                //$('#BridgeStatus').html("Success");
+                //var data = [{
+                //    "name":"LG1"
+                //},
+                //{
+                //    "name":"LG2"
+                //}];
+                //$('#selectLightGroup', page).html($.map(data, function (group, key) {
+                //       //return '<div><label class="checkboxContainer"><input is="emby-checkbox" id="selectLightGroups" type="checkbox"  value="' + key + '"><span>' + group.name + '</span></label></div><div class="inputContainer" id="lgDimValues"><br><br>Play<br><input type="range" name="' + group.name.replace(/\s/g,'') + 'playDimName" id="' + group.name .replace(/\s/g,'') + 'playDimId" value="0" min="0" max="100" oninput="' + group.name.replace(/\s/g,'') + 'playDimOutputId.value = ' + group.name.replace(/\s/g,'') + 'playDimId.value"><output name="' + group.name.replace(/\s/g,'') + 'playDimOutputName" id="' + group.name.replace(/\s/g,'') + 'playDimOutputId">0</output>% Brightness<br><br>Pause<br><input type="range" name="' + group.name.replace(/\s/g,'') + 'pauseDimName" id="' + group.name.replace(/\s/g,'') + 'pauseDimId" value="40" min="0" max="100" oninput="' + group.name.replace(/\s/g,'') + 'pauseDimOutputId.value = ' + group.name.replace(/\s/g,'') + 'pauseDimId.value"><output name="' + group.name.replace(/\s/g,'') + 'pauseDimOutputName" id="' + group.name.replace(/\s/g,'') + 'pauseDimOutputId">40</output>% Brightness<br><br>Stop<br><input type="range" name="' + group.name.replace(/\s/g,'') + 'stopDimName" id="' + group.name.replace(/\s/g,'') + 'stopDimId" value="100" min="0" max="100" oninput="' + group.name.replace(/\s/g,'') + 'stopDimOutputId.value = ' + group.name.replace(/\s/g,'') + 'stopDimId.value"><output name="' + group.name.replace(/\s/g,'') + 'stopDimOutputName" id="' + group.name.replace(/\s/g,'') + 'stopDimOutputId">100</output>% Brightness</div>';
+                //       return '<div><label class="checkboxContainer"><input is="emby-checkbox" id="selectLightGroups" name="selectLightGroups" type="checkbox"  value="' + key + '"><span>' + group.name + '</span></label></div><div class="inputContainer" id="lgDimValues"><br><br>Play<br><input type="range" name="' + group.name.replace(/\s/g,'') + 'playDimName" id="' + group.name .replace(/\s/g,'') + 'playDimId" value="0" min="0" max="100" oninput="' + group.name.replace(/\s/g,'') + 'playDimOutputId.value = ' + group.name.replace(/\s/g,'') + 'playDimId.value"><output name="' + group.name.replace(/\s/g,'') + 'playDimOutputName" id="' + group.name.replace(/\s/g,'') + 'playDimOutputId">0</output>% Brightness<br><br>Pause<br><input type="range" name="' + group.name.replace(/\s/g,'') + 'pauseDimName" id="' + group.name.replace(/\s/g,'') + 'pauseDimId" value="40" min="0" max="100" oninput="' + group.name.replace(/\s/g,'') + 'pauseDimOutputId.value = ' + group.name.replace(/\s/g,'') + 'pauseDimId.value"><output name="' + group.name.replace(/\s/g,'') + 'pauseDimOutputName" id="' + group.name.replace(/\s/g,'') + 'pauseDimOutputId">40</output>% Brightness<br><br>Stop<br><input type="range" name="' + group.name.replace(/\s/g,'') + 'stopDimName" id="' + group.name.replace(/\s/g,'') + 'stopDimId" value="100" min="0" max="100" oninput="' + group.name.replace(/\s/g,'') + 'stopDimOutputId.value = ' + group.name.replace(/\s/g,'') + 'stopDimId.value"><output name="' + group.name.replace(/\s/g,'') + 'stopDimOutputName" id="' + group.name.replace(/\s/g,'') + 'stopDimOutputId">100</output>% Brightness</div>';
+                //}));
+                // END
+
                 Dashboard.hideLoadingMsg();
             }
 
@@ -184,7 +195,7 @@
                     $('#BridgeStatusIcon').html("check");
                     $('#BridgeStatus').html("Success");
                     $('#selectLightGroup', page).html($.map(data, function (group, key) {
-                        return '<option value="' + key + '">' + group.name + '</option>';
+                        return '<div><label class="checkboxContainer"><input is="emby-checkbox" id="selectLightGroups" name="selectLightGroups" type="checkbox"  value="' + key + '"><span>' + group.name + '</span></label></div><div class="inputContainer" id="lgDimValues"><br><br>Play<br><input type="range" name="' + group.name.replace(/\s/g,'') + 'playDimName" id="' + group.name .replace(/\s/g,'') + 'playDimId" value="0" min="0" max="100" oninput="' + group.name.replace(/\s/g,'') + 'playDimOutputId.value = ' + group.name.replace(/\s/g,'') + 'playDimId.value"><output name="' + group.name.replace(/\s/g,'') + 'playDimOutputName" id="' + group.name.replace(/\s/g,'') + 'playDimOutputId">0</output>% Brightness<br><br>Pause<br><input type="range" name="' + group.name.replace(/\s/g,'') + 'pauseDimName" id="' + group.name.replace(/\s/g,'') + 'pauseDimId" value="40" min="0" max="100" oninput="' + group.name.replace(/\s/g,'') + 'pauseDimOutputId.value = ' + group.name.replace(/\s/g,'') + 'pauseDimId.value"><output name="' + group.name.replace(/\s/g,'') + 'pauseDimOutputName" id="' + group.name.replace(/\s/g,'') + 'pauseDimOutputId">40</output>% Brightness<br><br>Stop<br><input type="range" name="' + group.name.replace(/\s/g,'') + 'stopDimName" id="' + group.name.replace(/\s/g,'') + 'stopDimId" value="40" min="0" max="100" oninput="' + group.name.replace(/\s/g,'') + 'stopDimOutputId.value = ' + group.name.replace(/\s/g,'') + 'stopDimId.value"><output name="' + group.name.replace(/\s/g,'') + 'stopDimOutputName" id="' + group.name.replace(/\s/g,'') + 'stopDimOutputId">40</output>% Brightness</div>';
                     }));
                 }
 
@@ -192,21 +203,68 @@
                 Dashboard.hideLoadingMsg();
             }, onError);
         }
-
-
         function loadDeviceConfig(page, deciveId) {
 
             Dashboard.showLoadingMsg();
 
             ApiClient.getPluginConfiguration(pluginId).then(function (config) {
                 var hueConfig = config.Options.filter(function (c) {
-                    return deciveId == c.embyDeviceID;
+                    return (deciveId == c.embyDeviceID);
                 })[0] || {};
 
+
+
                 $('#chkEnabled', page).checked(hueConfig.Enabled || false).checkboxradio("refresh");
-                $('#selectLightGroup', page).val(hueConfig.LightGroupNumber || '');
-              //  $('#txtPlayTime', page).val(hueConfig.OnPlay_TransitionTime || '');
+
+                $('#playDimId', page).val(hueConfig.OnPlay_Dim || '');
+                $('#playDimOutputId', page).val(hueConfig.OnPlay_Dim || '');
+
+                $('#pauseDimId', page).val(hueConfig.OnPause_Dim || '');
+                $('#pauseDimOutputId', page).val(hueConfig.OnPause_Dim || '');
+
+                $('#stopDimId', page).val(hueConfig.OnStop_Dim || '');
+                $('#stopDimOutputId', page).val(hueConfig.OnStop_Dim || '');
                 $('#txtStopTime', page).val(hueConfig.OnStop_TransitionTime || '');
+
+                var lGroups=document.getElementsByName('selectLightGroups');
+                for (var i=0; i < lGroups.length; i++) {
+                    if(lGroups[i].type=='checkbox' ) {
+                        if (hueConfig.LightGroups == null) {
+                            hueConfig.LightGroups = [];
+                        }
+                        var lightGroupConfig = hueConfig.LightGroups.filter(function (lg) {
+                            return lGroups[i].value == lg.Number;
+                        })[0];
+
+                        if (!lightGroupConfig) {
+                            lightGroupConfig = {}
+                            hueConfig.LightGroups.push(lightGroupConfig);
+                        } else {
+                            var groupName = lGroups[i].nextElementSibling.textContent.replace(/\s/g,'');
+
+                            var playDim = document.getElementById(groupName + "playDimId");
+                            console.log(playDim);
+                            var pauseDim = document.getElementById(groupName + "pauseDimId");
+                            var stopDim = document.getElementById(groupName + "stopDimId");
+                            var playOutputDim = document.getElementById(groupName + "playDimOutputId");
+                            var pauseOutputDim = document.getElementById(groupName + "pauseDimOutputId");
+                            var stopOutputDim = document.getElementById(groupName + "stopDimOutputId");
+
+                            lGroups[i].value = lightGroupConfig.Number;
+                            lGroups[i].checked = lightGroupConfig.Enabled;
+                            lGroups[i].Name = groupName;
+                            playDim.value = lightGroupConfig.OnPlay_Dim;
+                            playOutputDim.value = lightGroupConfig.OnPlay_Dim;
+                            pauseDim.value = lightGroupConfig.OnPause_Dim;
+                            pauseOutputDim.value = lightGroupConfig.OnPause_Dim;
+                            stopDim.value = lightGroupConfig.OnStop_Dim;
+                            stopOutputDim = lightGroupConfig.OnStop_Dim;
+                            $('#txtStopTime', page).val(lightGroupConfig.TransTime);
+                        }
+                    }
+                } 
+
+                console.log(hueConfig);
 
                 Dashboard.hideLoadingMsg();
 
@@ -234,9 +292,42 @@
 
                 hueConfig.embyDeviceID = deviceId;
                 hueConfig.Enabled = $('#chkEnabled', form).checked();
-                hueConfig.LightGroupNumber = $('#selectLightGroup', form).val();
-             //   hueConfig.OnPlay_TransitionTime = $('#txtPlayTime', form).val();
-                hueConfig.OnStop_TransitionTime = $('#txtStopTime', form).val();
+                
+
+                var lGroups=document.getElementsByName('selectLightGroups');
+                for (var i=0; i < lGroups.length; i++) {
+                    if(lGroups[i].type=='checkbox' ) {
+                        if (hueConfig.LightGroups == null) {
+                            hueConfig.LightGroups = [];
+                        }
+                        var lightGroupConfig = hueConfig.LightGroups.filter(function (lg) {
+                            return lGroups[i].value == lg.Number;
+                        })[0];
+
+                        if (!lightGroupConfig) {
+                            lightGroupConfig = {}
+                            hueConfig.LightGroups.push(lightGroupConfig);
+                        }
+                        var groupName = lGroups[i].nextElementSibling.textContent.replace(/\s/g,'');
+                        var playDim = document.getElementById(groupName + "playDimId");
+                        var pauseDim = document.getElementById(groupName + "pauseDimId");
+                        var stopDim = document.getElementById(groupName + "stopDimId");
+
+
+                        lightGroupConfig.Number = lGroups[i].value;
+                        lightGroupConfig.Enabled = lGroups[i].checked;
+                        lightGroupConfig.Name = lGroups[i].nextElementSibling.textContent;
+                        lightGroupConfig.OnPlay_Dim = playDim.value;
+                        lightGroupConfig.OnPause_Dim = pauseDim.value;
+                        lightGroupConfig.OnStop_Dim = stopDim.value;
+
+                        lightGroupConfig.TransTime = $('#txtStopTime', form).val();
+
+                        console.log(lightGroupConfig);
+                    }
+                }
+
+                console.log(hueConfig);
                 
                 ApiClient.updatePluginConfiguration(pluginId, config).then(Dashboard.processPluginConfigurationUpdateResult);
 
